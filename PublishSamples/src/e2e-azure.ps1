@@ -42,44 +42,10 @@ finally{
     Pop-Location
 }
 
-<#
-function BuildAndBundle{
-    [cmdletbinding()]
-    param(
-        $rootSrcdir,
-        $name,
-        $packOutdir
-    )
-    begin{ Push-Location }
-    end{ Pop-Location }
-    process{
-        $srcDir = (get-item (join-path $rootSrcdir $name)).FullName
-        Set-Location $srcDir
-'*********************************************
-build and bundle [{0}]
-*********************************************' -f $srcDir | Write-Output
-'***** restoring nuget packages ****' | Write-Output
-        kpm restore
-
-'**** building project ****' | Write-Output
-        kpm build
-
-'**** bundling to [{0}] ****' -f $outdir | Write-Output
-        $outdir = (new-item (join-path $packOutDir $name) -ItemType Directory).FullName
-        kpm @('bundle', '-o', "$outdir")
-        Set-Location $outdir
-    }
-}
-
-BuildAndBundle -rootSrcdir $sourceRoot -name 'WebApp01' -packOutdir $packOutDir
-
-# now publish to azure with the existing script
-$publishScript
-#>
 'Publishing to Azure' | Write-Output
-& 'C:\Data\personal\mycode\orlandocc-2015\PublishSamples\src\PubSamples\Properties\PublishProfiles\AzureSayed-publish.ps1' -packOutput $packOutDir -publishProperties @{
+$pubscript = (get-item (Join-Path $sourceRoot 'PubSamples\Properties\PublishProfiles\AzureSayed-publish.ps1')).FullName
+&($pubscript) -packOutput $packOutDir -publishProperties @{
      'WebPublishMethod'='MSDeploy'
      'MSDeployServiceURL'='sayed01.scm.azurewebsites.net:443';
      'DeployIisAppPath'='sayed01';'Username'='$sayed01';'Password'="$publishPwd"
 }
-
